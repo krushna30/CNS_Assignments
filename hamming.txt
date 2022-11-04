@@ -1,0 +1,230 @@
+//----------------------Hamming Code---------------
+
+#include <bits/stdc++.h>
+using namespace std;
+//-----------------Function to find the values of Ri------------------------------
+void solvefor_r(char arr[], int n, vector<char> &re, bool flag)
+{
+    vector<string> str;
+    string ans;
+    int tempr = 0;
+    int blocksize = 0;
+    while (tempr < 4)
+    {
+        int t = pow(2, tempr);
+        int last = n - t;
+        ans = "";
+
+        for (int i = last; i >= 0;)
+        {
+
+            if (arr[i] != 'r')
+            {
+
+                ans.push_back(arr[i]);
+            }
+            blocksize++;
+
+            if (blocksize == t)
+            {
+                blocksize = 0;
+                i -= t + 1;
+            }
+            else
+            {
+                i--;
+            }
+        }
+        str.push_back(ans);
+        tempr++;
+    }
+    int i = 1;
+
+    for (auto it : str)
+    {
+        int cnt = 0;
+        for (int i = 0; i < it.size(); i++)
+        {
+            if (it[i] == '1')
+            {
+                cnt++;
+            }
+        }
+
+        if (cnt & 1)
+        {
+            re.push_back('1');
+        }
+        else
+        {
+            re.push_back('0');
+        }
+    }
+    if (flag)
+    {
+        cout << "AT SENDER SIDE :-\n";
+    }
+    else
+    {
+        cout << "AT RECEIVER SIDE :-\n";
+    }
+    for (int i = 0; i < re.size(); i++)
+    {
+        if (flag)
+        {
+            int t = pow(2, i);
+            int index = n - t;
+            arr[index] = re[i];
+        }
+
+        cout << "R" << i << "-->" << re[i] << endl;
+    }
+}
+//---------------Function to Corrupt the Ri----------------
+void corrupt(char arr[], int n)
+{
+    int index = rand() % n;
+
+    if (arr[index] == '1')
+        arr[index] = '0';
+    else
+        arr[index] = '1';
+}
+//-------------Function to print the array-------------
+void printarr(char arr[], int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+    cout << endl;
+}
+//------------For correcting the corrupted Bit-----------------
+void correct_the_bit(char arr[], vector<char> &re, int n)
+{
+
+    int index;
+    string bitstream;
+    for (int i = re.size() - 1; i >= 0; i--)
+    {
+
+        bitstream.push_back(re[i]);
+    }
+
+    bitset<10> ind(bitstream);
+    index = ind.to_ulong();
+    if (index != 0)
+        cout << "Wrong bit was at position:-" <<n-index << endl;
+    else
+        cout << "No bit is Corrupted\n";
+
+    if (arr[n - index] == '1')
+        arr[n - index] = '0';
+    else
+        arr[n - index] = '1';
+}
+int main()
+{
+    string s;
+    cout << "Enter the Message to send :-";
+    cin >> s;
+    for (int i = 0; i < s.length(); i++)
+    {
+        char chara;
+        chara = s[i];
+        cout << "##------------- FOR " << s[i] << " ------------------##\n";
+        int con = (int)chara;
+        cout << "ASCII FOR "<<chara<<" :->"<<con << endl;
+        string s1 = bitset<7>(con).to_string();
+
+        cout << "Binary for ASCII :->"<<s1 << endl;
+        int m = s1.length();
+        int r = 0;
+
+        while (pow(2, r) < m + r + 1)
+        {
+            r++;
+        }
+
+        int n = m + r;
+        char arr[n];
+        int j = 3;
+        int k = 0;
+        for (int i = 0; i < n; i++)
+        {
+            if (i == n - pow(2, j))
+            {
+                arr[i] = 'r';
+                j--;
+            }
+            else
+            {
+                arr[i] = s1[k];
+                k++;
+            }
+        }
+        cout << "THE CODEWORD WITH REDUNDANT BITS :->\n";
+        printarr(arr, n);
+
+        vector<char> re;
+        solvefor_r(arr, n, re, 1);
+        cout << "THE CORRECT CODEWORD WITH VALUE OF REDUNDANT BITS AT SENDER'S END \n";
+        printarr(arr, n);
+
+        cout << "** Do you  want to Corrupt the Bit(y/n) ?\n";
+        char answer;
+        cin >> answer;
+        if (answer == 'y')
+        {
+            corrupt(arr, n);
+            cout << "THE CODEWORD WITH THE CORRUPTED BIT \n";
+            printarr(arr, n);
+        }
+
+        vector<char> re_receiver;
+
+        solvefor_r(arr, n, re_receiver, 0);
+
+        correct_the_bit(arr, re_receiver, n);
+
+        cout << "THE CODEWORD AFTER CORRECTION IS :->";
+        printarr(arr, n);
+    }
+
+    return 0;
+}
+
+
+
+//-------------------------Hamming Output------------
+Enter the Message to send :-A
+##------------- FOR A ------------------##
+ASCII FOR A :->65
+Binary for ASCII :->1000001
+THE CODEWORD WITH REDUNDANT BITS :->
+1 0 0 r 0 0 0 r 1 r r 
+
+AT SENDER SIDE :-
+R0-->0
+R1-->0
+R2-->0
+R3-->1
+THE CORRECT CODEWORD WITH VALUE OF REDUNDANT BITS AT SENDER'S END 
+1 0 0 1 0 0 0 0 1 0 0 
+
+** Do you  want to Corrupt the Bit(y/n) ?
+y
+THE CODEWORD WITH THE CORRUPTED BIT 
+1 0 0 1 0 0 1 0 1 0 0 
+
+AT RECEIVER SIDE :-
+R0-->1
+R1-->0
+R2-->1
+R3-->0
+Wrong bit was at position:-6
+THE CODEWORD AFTER CORRECTION IS :->1 0 0 1 0 0 0 0 1 0 0 
+
+//--------------END-------------------
+
